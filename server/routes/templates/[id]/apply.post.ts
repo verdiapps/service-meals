@@ -54,6 +54,22 @@ export default defineEventHandler(async (event) => {
 		const createdCategories = [];
 		const createdIngredients = [];
 
+		const userCategories = await ModelCategories.find({
+			userId,
+			templateId: null,
+		}).select("_id");
+
+		if (userCategories.length > 0) {
+			const userCategoryIds = userCategories.map((category) => category._id);
+			await ModelIngredients.deleteMany({
+				categoryId: { $in: userCategoryIds },
+			});
+			await ModelCategories.deleteMany({
+				_id: { $in: userCategoryIds },
+				userId,
+			});
+		}
+
 		for (const category of template.categories) {
 			const newCategory = new ModelCategories({
 				userId,
